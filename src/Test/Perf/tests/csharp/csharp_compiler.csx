@@ -34,7 +34,7 @@ class CSharpCompilerTest: PerfTest
 
         string workingDirectory = Path.Combine(TempDirectory, "csharp");
 
-        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), args, IsVerbose(), _logger, workingDirectory);
+        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), args, workingDirectory);
         _logger.Flush();
     }
     

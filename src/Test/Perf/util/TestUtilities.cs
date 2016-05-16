@@ -15,6 +15,21 @@ namespace Roslyn.Test.Performance.Utilities
 {
     public class TestUtilities
     {
+        public static bool IsRunFromRunner()
+        {
+            return RuntimeSettings.isRunnerAttached;
+        }
+
+        public static bool IsVerbose()
+        {
+            return RuntimeSettings.isVerbose;
+        }
+
+        public static ILogger Logger()
+        {
+            return RuntimeSettings.logger;
+        }
+
         //
         // Directory Locating Functions
         //
@@ -77,15 +92,13 @@ namespace Roslyn.Test.Performance.Utilities
         public static void ShellOutVital(
                 string file,
                 string args,
-                bool verbose,
-                ILogger logger,
                 string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
-            var result = ShellOut(file, args, verbose, logger, workingDirectory, cancellationToken);
+            var result = ShellOut(file, args, workingDirectory, cancellationToken);
             if (result.Failed)
             {
-                LogProcessResult(result, logger);
+                LogProcessResult(result);
                 throw new System.Exception("ShellOutVital Failed");
             }
         }
@@ -95,8 +108,6 @@ namespace Roslyn.Test.Performance.Utilities
         public static ProcessResult ShellOut(
                 string file,
                 string args,
-                bool verbose,
-                ILogger logger,
                 string workingDirectory = null,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -122,9 +133,9 @@ namespace Roslyn.Test.Performance.Utilities
                 cancellationToken.Register(() => process.Kill());
             }
 
-            if (verbose)
+            if (RuntimeSettings.isVerbose)
             {
-                logger.Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
+                RuntimeSettings.logger.Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
             }
 
             process.Start();
@@ -162,12 +173,12 @@ namespace Roslyn.Test.Performance.Utilities
             };
         }
 
-        public static string StdoutFrom(string program, bool verbose, ILogger logger, string args = "", string workingDirectory = null)
+        public static string StdoutFrom(string program, string args = "", string workingDirectory = null)
         {
-            var result = ShellOut(program, args, verbose, logger, workingDirectory);
+            var result = ShellOut(program, args, workingDirectory);
             if (result.Failed)
             {
-                LogProcessResult(result, logger);
+                LogProcessResult(result);
                 throw new Exception("Shelling out failed");
             }
             return result.StdOut.Trim();
@@ -187,14 +198,14 @@ namespace Roslyn.Test.Performance.Utilities
         }
 
         /// Logs the result of a finished process
-        public static void LogProcessResult(ProcessResult result, ILogger logger)
+        public static void LogProcessResult(ProcessResult result)
         {
-            logger.Log(String.Format("The process \"{0}\" {1} with code {2}",
+            RuntimeSettings.logger.Log(String.Format("The process \"{0}\" {1} with code {2}",
                 $"{result.ExecutablePath} {result.Args}",
                 result.Failed ? "failed" : "succeeded",
                 result.Code));
-            logger.Log($"Standard Out:\n{result.StdOut}");
-            logger.Log($"\nStandard Error:\n{result.StdErr}");
+            RuntimeSettings.logger.Log($"Standard Out:\n{result.StdOut}");
+            RuntimeSettings.logger.Log($"\nStandard Error:\n{result.StdErr}");
         }
     }
 }

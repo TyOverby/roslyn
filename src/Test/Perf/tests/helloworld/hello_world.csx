@@ -31,7 +31,7 @@ class HelloWorldTest : PerfTest
     
     public override void Test() 
     {
-        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, IsVerbose(), _logger, workingDirectory: MyWorkingDirectory);
+        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, MyWorkingDirectory);
         _logger.Flush();
     }
     

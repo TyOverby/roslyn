@@ -4,11 +4,53 @@ using System.Linq;
 using System.IO;
 using System.Xml;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace Roslyn.Test.Performance.Utilities
 {
+    public static class RuntimeSettings
+    {
+
+        public static ILogger logger = new ConsoleAndFileLogger();
+        public static bool isVerbose = true;
+        public static bool isRunnerAttached = false;
+    }
+
     public class Tools
     {
+
+        void CopyDirectory(string source, string destination, string argument = @"/mir")
+        {
+            var result = ShellOut("Robocopy", $"{argument} {source} {destination}", "");
+
+            // Robocopy has a success exit code from 0 - 7
+            if (result.Code > 7)
+            {
+                throw new IOException($"Failed to copy \"{source}\" to \"{destination}\".");
+            }
+        }
+
+        /// Logs a message.
+        ///
+        /// The actual implementation of this method may change depending on
+        /// if the script is being run standalone or through the test runner.
+        static void Log(string info)
+        {
+            Console.WriteLine(info);
+        }
+
+        /// Logs the result of a finished process
+        static void LogProcessResult(ProcessResult result)
+        {
+            Log(String.Format("The process \"{0}\" {1} with code {2}",
+                $"{result.ExecutablePath} {result.Args}",
+                result.Failed ? "failed" : "succeeded",
+                result.Code));
+            Log($"Standard Out:\n{result.StdOut}");
+            Log($"\nStandard Error:\n{result.StdErr}");
+        }
         /// Takes a consumptionTempResults file and converts to csv file
         /// Each info contains the <ScenarioName, Metric Key, Metric value>
         public static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey, ILogger logger)
@@ -70,15 +112,15 @@ namespace Roslyn.Test.Performance.Utilities
         }
 
         /// Gets a csv file with metrics and converts them to ViBench supported JSON file
-        public static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath, bool verbose, ILogger logger)
+        public static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
         {
-            logger.Log("Convert the csv to JSON using ViBench tool");
-            string branch = StdoutFrom("git", verbose, logger, "rev-parse --abbrev-ref HEAD");
-            string date = FirstLine(StdoutFrom("git", verbose, logger, $"show --format=\"%aI\" {branch} --"));
-            string hash = FirstLine(StdoutFrom("git", verbose, logger, $"show --format=\"%h\" {branch} --"));
-            string longHash = FirstLine(StdoutFrom("git", verbose, logger, $"show --format=\"%H\" {branch} --"));
-            string username = StdoutFrom("whoami", verbose, logger);
-            string machineName = StdoutFrom("hostname", verbose, logger);
+            RuntimeSettings.logger.Log("Convert the csv to JSON using ViBench tool");
+            string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
+            string date = FirstLine(StdoutFrom("git", $"show --format=\"%aI\" {branch} --"));
+            string hash = FirstLine(StdoutFrom("git", $"show --format=\"%h\" {branch} --"));
+            string longHash = FirstLine(StdoutFrom("git", $"show --format=\"%H\" {branch} --"));
+            string username = StdoutFrom("whoami");
+            string machineName = StdoutFrom("hostname");
             string architecture = System.Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
 
             // File locations
@@ -119,7 +161,7 @@ namespace Roslyn.Test.Performance.Utilities
 
             arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 
-            ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments, verbose, logger, workingDirectory: "");
+            ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments, workingDirectory: "");
 
             return outJson;
         }
@@ -168,7 +210,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         public static void CopyDirectory(string source, ILogger logger, string destination, string argument = @"/mir")
         {
-            var result = ShellOut("Robocopy", $"{argument} {source} {destination}", verbose: true, logger: logger, workingDirectory: "");
+            var result = ShellOut("Robocopy", $"{argument} {source} {destination}", workingDirectory: "");
 
             // Robocopy has a success exit code from 0 - 7
             if (result.Code > 7)
@@ -177,5 +219,89 @@ namespace Roslyn.Test.Performance.Utilities
             }
         }
 
+        class ProcessResult
+        {
+            public string ExecutablePath { get; set; }
+            public string Args { get; set; }
+            public int Code { get; set; }
+            public string StdOut { get; set; }
+            public string StdErr { get; set; }
+
+            public bool Failed => Code != 0;
+            public bool Succeeded => !Failed;
+        }
+
+        static ProcessResult ShellOut(
+                string file,
+                string args,
+                string workingDirectory,
+                CancellationToken? cancelationToken = null)
+        {
+            var tcs = new TaskCompletionSource<ProcessResult>();
+            var startInfo = new ProcessStartInfo(file, args);
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.UseShellExecute = false;
+            startInfo.WorkingDirectory = workingDirectory;
+
+
+            var process = new Process
+            {
+                StartInfo = startInfo,
+                EnableRaisingEvents = true,
+            };
+
+            if (cancelationToken != null)
+            {
+                cancelationToken.Value.Register(() => process.Kill());
+            }
+
+            Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
+
+            process.Start();
+
+            var output = new StringWriter();
+            var error = new StringWriter();
+
+            process.OutputDataReceived += (s, e) =>
+            {
+                if (!String.IsNullOrEmpty(e.Data))
+                {
+                    output.WriteLine(e.Data);
+                }
+            };
+
+            process.ErrorDataReceived += (s, e) =>
+            {
+                if (!String.IsNullOrEmpty(e.Data))
+                {
+                    error.WriteLine(e.Data);
+                }
+            };
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();
+
+            return new ProcessResult
+            {
+                ExecutablePath = file,
+                Args = args,
+                Code = process.ExitCode,
+                StdOut = output.ToString(),
+                StdErr = error.ToString(),
+            };
+        }
+
+        public static string StdoutFrom(string program, string args = "", string workingDirectory = "")
+        {
+            var result = ShellOut(program, args, workingDirectory);
+            if (result.Failed)
+            {
+                LogProcessResult(result);
+                throw new Exception("Shelling out failed");
+            }
+            return result.StdOut.Trim();
+        }
     }
 }

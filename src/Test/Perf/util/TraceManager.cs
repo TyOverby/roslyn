@@ -12,22 +12,16 @@ namespace Roslyn.Test.Performance.Utilities
     {
         private readonly ScenarioGenerator _scenarioGenerator;
         private readonly string _cpcPath;
-        private readonly bool _verbose;
-        private readonly ILogger _logger;
 
         private int _startEventAbsoluteInstance = 1;
         private int _stopEventAbsoluteInstance = 1;
 
         public TraceManager(
             string cpcPath,
-            string scenarioPath,
-            bool verbose,
-            ILogger logger) : base()
+            string scenarioPath) : base()
         {
             _cpcPath = cpcPath;
             _scenarioGenerator = new ScenarioGenerator(scenarioPath);
-            _verbose = verbose;
-            _logger = logger;
         }
 
         public bool HasWarmUpIteration
@@ -59,24 +53,24 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void Setup()
         {
-            ShellOutVital(_cpcPath, "/Setup /DisableArchive", _verbose, _logger, workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Setup /DisableArchive", workingDirectory: "");
         }
 
         public void Start()
         {
-            ShellOutVital(_cpcPath, "/Start /DisableArchive", _verbose, _logger, workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Start /DisableArchive", workingDirectory: "");
         }
 
         public void Stop()
         {
             var scenariosXmlPath = Path.Combine(GetCPCDirectoryPath(), "scenarios.xml");
             var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
-            ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", _verbose, _logger, workingDirectory: "");
+            ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", workingDirectory: "");
         }
 
         public void Cleanup()
         {
-            ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", _verbose, _logger, workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", workingDirectory: "");
         }
 
         public void StartScenarios()

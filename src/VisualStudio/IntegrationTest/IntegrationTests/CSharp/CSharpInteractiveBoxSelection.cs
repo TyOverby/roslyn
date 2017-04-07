@@ -271,7 +271,7 @@ __e234567890ABCDEF
 1CDEF
 1CDEF
 1CDEF
-1234567890ABCDEF");            
+1234567890ABCDEF");
         }
 
         [Fact]
@@ -291,7 +291,7 @@ CDEF
 CDEF
 1234567890ABCDEF");
         }
-    
+
         [Fact]
         public void LeftToRightReversedBackspace()
         {

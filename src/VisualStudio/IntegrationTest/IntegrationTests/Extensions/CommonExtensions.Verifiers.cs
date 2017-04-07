@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions
             Assert.Equal(expectedCaretPosition, position);
         }
 
-        public  static void VerifyCodeActions(
+        public static void VerifyCodeActions(
             this AbstractIntegrationTest test,
             IEnumerable<string> expectedItems,
             string applyFix = null,

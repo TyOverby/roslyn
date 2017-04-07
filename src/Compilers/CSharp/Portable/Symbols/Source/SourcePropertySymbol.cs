@@ -1088,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
             }
-            
+
             if (this.ReturnsByRefReadonly)
             {
                 // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next PR

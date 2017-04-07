@@ -27,7 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive
             Assert.Equal(expectedReplInput, lastReplInput);
         }
 
-        public  static void VerifyReplPromptConsistency(this AbstractInteractiveWindowTest test, string prompt, string output)
+        public static void VerifyReplPromptConsistency(this AbstractInteractiveWindowTest test, string prompt, string output)
         {
             var replText = test.InteractiveWindow.GetReplText();
             var replTextLines = replText.Split(LineSeparators, StringSplitOptions.RemoveEmptyEntries);

@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddDeclarationsAsync(
-            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
+            Solution solution, IAssemblySymbol assembly, PortableExecutableReference referenceOpt,
             SearchQuery query, SymbolFilter filter, ArrayBuilder<ISymbol> list, CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching

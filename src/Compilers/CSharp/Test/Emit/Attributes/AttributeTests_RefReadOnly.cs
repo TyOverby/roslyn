@@ -460,7 +460,7 @@ class Test
                 Assert.Equal(referenceA.Compilation.AssemblyName, returnTypeAttribute.ContainingAssembly.Name);
             });
         }
-        
+
         [Fact]
         public void ReadOnlyAttributeIsDisallowedEverywhereInSource_Delegates()
         {

@@ -49,7 +49,7 @@ End Class");
     Dim i As Integer$$
 End Class");
             VisualStudioWorkspaceOutOfProc.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "True");
-            
+
             Editor.GoToDefinition();
             Assert.Equal("Object Browser", VisualStudio.Instance.Shell.GetActiveWindowCaption());
 

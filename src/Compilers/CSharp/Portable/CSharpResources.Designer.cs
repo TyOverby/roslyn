@@ -4092,16 +4092,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_ExplicitPropertyMissingAccessor", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.ReadOnlyAttribute&apos;. This is reserved for compiler usage..
         /// </summary>
-        internal static string ERR_ExplicitReadOnlyAttr {
-            get {
+        internal static string ERR_ExplicitReadOnlyAttr
+        {
+            get
+            {
                 return ResourceManager.GetString("ERR_ExplicitReadOnlyAttr", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot reference &apos;System.Runtime.CompilerServices.TupleElementNamesAttribute&apos; explicitly. Use the tuple syntax to define tuple names..
         /// </summary>
@@ -8016,16 +8018,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_RefAssignmentMustHaveIdentityConversion", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &apos;await&apos; cannot be used in an expression containing a ref conditional operator.
         /// </summary>
-        internal static string ERR_RefConditionalAndAwait {
-            get {
+        internal static string ERR_RefConditionalAndAwait
+        {
+            get
+            {
                 return ResourceManager.GetString("ERR_RefConditionalAndAwait", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The expression must be of type &apos;{0}&apos; to match the alternative ref value.
         /// </summary>
@@ -13740,21 +13744,25 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("WRN_TooManyLinesForDebugger_Title", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The tuple element name &apos;{0}&apos; is ignored because a different name is specified by the target type &apos;{1}&apos;..
         /// </summary>
-        internal static string WRN_TupleLiteralNameMismatch {
-            get {
+        internal static string WRN_TupleLiteralNameMismatch
+        {
+            get
+            {
                 return ResourceManager.GetString("WRN_TupleLiteralNameMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The tuple element name is ignored because a different name is specified by the assignment target..
         /// </summary>
-        internal static string WRN_TupleLiteralNameMismatch_Title {
-            get {
+        internal static string WRN_TupleLiteralNameMismatch_Title
+        {
+            get
+            {
                 return ResourceManager.GetString("WRN_TupleLiteralNameMismatch_Title", resourceCulture);
             }
         }

@@ -18,11 +18,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.Extensions.Interactive
             => test.InteractiveWindow.InsertCode(text);
 
         public static void PlaceCaret(
-            this AbstractInteractiveWindowTest test, 
-            string text, 
-            int charsOffset = 0, 
-            int occurrence = 0, 
-            bool extendSelection = false, 
+            this AbstractInteractiveWindowTest test,
+            string text,
+            int charsOffset = 0,
+            int occurrence = 0,
+            bool extendSelection = false,
             bool selectBlock = false)
               => test.InteractiveWindow.PlaceCaret(
                   text,

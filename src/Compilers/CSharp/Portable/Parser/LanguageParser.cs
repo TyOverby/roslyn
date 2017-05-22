@@ -2450,7 +2450,18 @@ parse_member_name:;
                     }
 
                     var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
-                    if (incompleteMember.ContainsDiagnostics)
+
+                    var containsErrorDiagnostic = false;
+                    foreach (var diagnostic in incompleteMember.GetDiagnostics())
+                    {
+                        if (diagnostic.Severity == DiagnosticSeverity.Error)
+                        {
+                            containsErrorDiagnostic = true;
+                            break;
+                        }
+                    }
+
+                    if (containsErrorDiagnostic)
                     {
                         return incompleteMember;
                     }

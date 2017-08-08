@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // If we're public signing, we don't need a strong name provider
-                return StrongNameKeys.Create(keyFile, MessageProvider.Instance);
+                return StrongNameKeys.Create(keyFile, MessageProvider.Instance).Public;
             }
 
             if (string.IsNullOrEmpty(keyFile))

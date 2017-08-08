@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var key = ImmutableArray.Create(TestResources.General.snKey);
 
             ImmutableArray<byte> pubKey;
-            Assert.True(CryptoBlobParser.TryGetPublicKey(key, out pubKey));
+            Assert.True(CryptoBlobParser.TryParseKey(key, out pubKey, out _));
             Assert.True(CryptoBlobParser.IsValidPublicKey(pubKey));
             Assert.Equal(TestResources.General.snPublicKey, pubKey);
         }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var key = ImmutableArray.Create(TestResources.General.snKey2);
 
             ImmutableArray<byte> pubKey;
-            Assert.True(CryptoBlobParser.TryGetPublicKey(key, out pubKey));
+            Assert.True(CryptoBlobParser.TryParseKey(key, out pubKey, out _));
             Assert.True(CryptoBlobParser.IsValidPublicKey(pubKey));
             Assert.Equal(TestResources.General.snPublicKey2, pubKey);
         }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var key = ImmutableArray.Create(TestResources.General.snPublicKey);
 
             ImmutableArray<byte> pubKey;
-            Assert.True(CryptoBlobParser.TryGetPublicKey(key, out pubKey));
+            Assert.True(CryptoBlobParser.TryParseKey(key, out pubKey, out _));
             Assert.True(CryptoBlobParser.IsValidPublicKey(pubKey));
             Assert.Equal(key, pubKey);
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var publicKeyBlob = ImmutableArray.Create(buf);
 
             ImmutableArray<byte> pubKey;
-            Assert.True(CryptoBlobParser.TryGetPublicKey(publicKeyBlob, out pubKey));
+            Assert.True(CryptoBlobParser.TryParseKey(publicKeyBlob, out pubKey, out _));
             Assert.True(CryptoBlobParser.IsValidPublicKey(pubKey));
             Assert.Equal(snBlob, pubKey);
         }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ImmutableArray<byte> pubKey;
             foreach (var key in invalidKeyBlobs)
             {
-                Assert.False(CryptoBlobParser.TryGetPublicKey(HexToBin(key), out pubKey));
+                Assert.False(CryptoBlobParser.TryParseKey(HexToBin(key), out pubKey, out _));
             }
         }
 

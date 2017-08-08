@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -2411,6 +2412,7 @@ namespace Microsoft.CodeAnalysis
             Stream portablePdbStream = null;
 
             bool deterministic = IsEmitDeterministic;
+            bool bypassStrongName = Feature("bypassStrongName")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
 
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
             Debug.Assert(moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
@@ -2476,7 +2478,7 @@ namespace Microsoft.CodeAnalysis
                     // then stream that to the stream that this method was called with. Otherwise output to the
                     // stream that this method was called with.
                     Stream retStream;
-                    if (!metadataOnly && IsRealSigned)
+                    if (!metadataOnly && IsRealSigned && bypassStrongName)
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
@@ -2522,6 +2524,13 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
+                    RSAParameters? privateKeyOpt = null;
+                    if (!bypassStrongName && IsRealSigned && !metadataOnly)
+                    {
+                        var (_, privKey) = StrongNameKeys.Create("foo.txt", MessageProvider);
+                        privateKeyOpt = privKey;
+                    }
+
                     if (SerializePeToStream(
                         moduleBeingBuilt,
                         metadataDiagnostics,
@@ -2535,6 +2544,7 @@ namespace Microsoft.CodeAnalysis
                         includePrivateMembers,
                         deterministic,
                         emitTestCoverageData,
+                        privateKeyOpt,
                         cancellationToken))
                     {
                         if (nativePdbWriter != null)
@@ -2621,6 +2631,7 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembers,
             bool isDeterministic,
             bool emitTestCoverageData,
+            RSAParameters? privateKey,
             CancellationToken cancellationToken)
         {
             bool emitSecondaryAssembly = getMetadataPeStreamOpt != null;
@@ -2637,6 +2648,7 @@ namespace Microsoft.CodeAnalysis
                 metadataOnly,
                 deterministicPrimaryOutput,
                 emitTestCoverageData,
+                privateKey,
                 cancellationToken))
             {
                 return false;
@@ -2658,6 +2670,7 @@ namespace Microsoft.CodeAnalysis
                     metadataOnly: true,
                     isDeterministic: true,
                     emitTestCoverageData: false,
+                    signatureOpt: null, // FEATURE: Should this be null?
                     cancellationToken: cancellationToken))
                 {
                     return false;

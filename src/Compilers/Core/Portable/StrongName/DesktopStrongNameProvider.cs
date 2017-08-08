@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
                     var fileContent = ImmutableArray.Create(ReadAllBytes(resolvedKeyFile));
-                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
+                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath).Item1;
                 }
                 catch (Exception ex)
                 {

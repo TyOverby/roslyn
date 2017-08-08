@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -181,8 +182,9 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Can be either a PUBLICKEYBLOB or PRIVATEKEYBLOB. The BLOB must be unencrypted.
         /// </remarks>
-        public unsafe static bool TryGetPublicKey(ImmutableArray<byte> blob, out ImmutableArray<byte> publicKey)
+        public unsafe static bool TryParseKey(ImmutableArray<byte> blob, out ImmutableArray<byte> publicKey, out RSAParameters? privateKey)
         {
+            privateKey = null;
             // Is this already a strong name PublicKeyBlob?
             if (IsValidPublicKey(blob))
             {
@@ -211,9 +213,15 @@ namespace Microsoft.CodeAnalysis
                 // Info (corresponds to RSAPUBKEY struct in wincrypt.h)
                 var magic = blobReader.ReadUInt32();
                 var bitLen = blobReader.ReadUInt32();
+
+                // We need the exponent as both a byte array and 
+                // as an integer depending on if we're doing public sign or 
+                // strong name signing with private keys.
+                var expBytes = blobReader.ReadBytes(4);
+                blobReader.Offset -= 4;
                 var pubExp = blobReader.ReadUInt32();
 
-                var modulusLength = (int)(bitLen >> 3);
+                var modulusLength = (int)(bitLen / 8);
                 // The key blob data just contains the modulus
                 if (blob.Length - s_offsetToKeyData < modulusLength)
                 {
@@ -225,6 +233,17 @@ namespace Microsoft.CodeAnalysis
                 // The RSA magic key must match the blob id
                 if (type == PrivateKeyBlobId && magic == RSA2)
                 {
+                    RSAParameters privKey = default;
+                    privKey.Exponent = expBytes;
+                    privKey.Modulus = pubKeyData;
+                    privKey.P = blobReader.ReadBytes(modulusLength / 2);
+                    privKey.Q = blobReader.ReadBytes(modulusLength / 2);
+                    privKey.DP = blobReader.ReadBytes(modulusLength / 2);
+                    privKey.DQ = blobReader.ReadBytes(modulusLength / 2);
+                    privKey.InverseQ = blobReader.ReadBytes(modulusLength / 2);
+                    privKey.D = blobReader.ReadBytes(modulusLength);
+                    privateKey = privKey;
+
                     publicKey = CreateSnPublicKeyBlob(PublicKeyBlobId, version, 0, AlgorithmId.RsaSign, RSA1, bitLen, pubExp, pubKeyData);
                     return true;
                 }

@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using Microsoft.CodeAnalysis.Emit;
+using System.Security.Cryptography;
 
 namespace Microsoft.Cci
 {
@@ -35,6 +36,7 @@ namespace Microsoft.Cci
             bool metadataOnly,
             bool isDeterministic,
             bool emitTestCoverageData,
+            RSAParameters? signatureOpt,
             CancellationToken cancellationToken)
         {
             // If PDB writer is given, we have to have PDB path.
@@ -213,6 +215,10 @@ namespace Microsoft.Cci
 
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
+
+            if (signatureOpt != null) {
+                peBuilder.Sign(peBlob, content => SigningUtilities.CalculateRsaSignature(content, signatureOpt.Value));
+            }
 
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
